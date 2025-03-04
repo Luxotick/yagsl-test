@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.HookSubystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -30,6 +32,8 @@ import swervelib.SwerveInputStream;
  */
 public class RobotContainer
 {
+  private final HookSubystem hookSystem = new HookSubystem();
+  private final ElevatorSubsystem elevatorSystem = new ElevatorSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final         CommandXboxController driverXbox = new CommandXboxController(0);
@@ -179,6 +183,10 @@ public class RobotContainer
     {
       driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
       driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+      driverXbox.rightTrigger().onTrue(Commands.runOnce(hookSystem::toggleMotors, hookSystem));
+      driverXbox.rightBumper().onTrue(Commands.runOnce(hookSystem::toggleMotorsReverse, hookSystem));
+      driverXbox.y().onTrue(Commands.runOnce(elevatorSystem::toggleMotors, elevatorSystem));
+      driverXbox.a().onTrue(Commands.runOnce(elevatorSystem::toggleMotorsReverse, elevatorSystem));
       driverXbox.start().whileTrue(Commands.none());
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
