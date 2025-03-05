@@ -9,6 +9,7 @@ public class HookSubystem extends SubsystemBase {
     private final SparkMax motor1;
     private final SparkMax motor2;
     private boolean isRunning = false;
+    private boolean speed = false;
 
     public HookSubystem() {
         // Initialize motors with their CAN IDs
@@ -33,11 +34,15 @@ public class HookSubystem extends SubsystemBase {
         // Set motor2 to run in opposite direction
         motor2.configure(motor2Config, null, null);
 
-        motor1.configure(motor1Config, null, null);
-
-        motor1.set(0.3); // Run at 50% speed - adjust as needed
-        motor2.set(0.3); // This will run in opposite direction due to inversion
-        isRunning = true;
+        motor1.configure(motor1Config, null,  null);
+        if(speed){
+            motor1.set(1); // Run at 50% speed - adjust as needed
+            motor2.set(1); // This will run in opposite direction due to inversion    
+        }else{
+            motor1.set(0.03); // Run at 50% speed - adjust as needed
+            motor2.set(0.03); // This will run in opposite direction due to inversion    
+        }
+       isRunning = true;
     }
 
     public void startMotorInverted() {
@@ -77,6 +82,10 @@ public class HookSubystem extends SubsystemBase {
         } else {
             startMotorInverted();
         }
+    }
+
+    public void changeSpeed() {
+        speed = !speed;
     }
 
     public boolean isRunning() {

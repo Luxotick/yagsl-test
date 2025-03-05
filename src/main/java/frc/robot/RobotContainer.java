@@ -37,6 +37,7 @@ public class RobotContainer
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final         CommandXboxController driverXbox = new CommandXboxController(0);
+  //final         CommandXboxController controlXbox = new CommandXboxController(1);
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/neo"));
@@ -181,16 +182,19 @@ public class RobotContainer
       driverXbox.rightBumper().onTrue(Commands.none());
     } else
     {
-      driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
+      driverXbox.leftBumper().onTrue((Commands.runOnce(drivebase::zeroGyro)));
       driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
       driverXbox.rightTrigger().onTrue(Commands.runOnce(hookSystem::toggleMotors, hookSystem));
       driverXbox.rightBumper().onTrue(Commands.runOnce(hookSystem::toggleMotorsReverse, hookSystem));
-      driverXbox.y().onTrue(Commands.runOnce(elevatorSystem::toggleMotors, elevatorSystem));
-      driverXbox.a().onTrue(Commands.runOnce(elevatorSystem::toggleMotorsReverse, elevatorSystem));
+      driverXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
+      driverXbox.a().onTrue(Commands.runOnce(elevatorSystem::setToPosition1, elevatorSystem));
       driverXbox.start().whileTrue(Commands.none());
       driverXbox.back().whileTrue(Commands.none());
-      driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.rightBumper().onTrue(Commands.none());
+      driverXbox.b().onTrue(Commands.runOnce(hookSystem::changeSpeed, hookSystem));
+
+      //controlXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
+      //driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+      //driverXbox.rightBumper().onTrue(Commands.none());
     }
 
   }
