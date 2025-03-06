@@ -1,13 +1,17 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.*;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.*;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class HookSubystem extends SubsystemBase {
     private final SparkMax motor1;
     private final SparkMax motor2;
+    private final RelativeEncoder encoder;
     private boolean isRunning = false;
     private boolean speed = false;
 
@@ -15,20 +19,21 @@ public class HookSubystem extends SubsystemBase {
         // Initialize motors with their CAN IDs
         motor1 = new SparkMax(31, MotorType.kBrushless);
         motor2 = new SparkMax(32, MotorType.kBrushless);
-
+        encoder = motor1.getEncoder();
         
     }
 
     public void startMotors() {
         SparkMaxConfig motor2Config = new SparkMaxConfig();
          motor2Config
-        .smartCurrentLimit(40)
+        .smartCurrentLimit(60)
         .inverted(true);    
         SparkMaxConfig motor1Config = new SparkMaxConfig();
         motor1Config
-        .smartCurrentLimit(40)
+        .smartCurrentLimit(60)
         .inverted(false);   
         // Reset motor controllers to factory defaults
+        SmartDashboard.putNumber("sa", encoder.getPosition());
 
 
         // Set motor2 to run in opposite direction
@@ -36,8 +41,8 @@ public class HookSubystem extends SubsystemBase {
 
         motor1.configure(motor1Config, null,  null);
         if(speed){
-            motor1.set(1); // Run at 50% speed - adjust as needed
-            motor2.set(1); // This will run in opposite direction due to inversion    
+            motor1.set(0.6); // Run at 50% speed - adjust as needed
+            motor2.set(0.6); // This wil++l run in opposite direction due to inversion    
         }else{
             motor1.set(0.03); // Run at 50% speed - adjust as needed
             motor2.set(0.03); // This will run in opposite direction due to inversion    

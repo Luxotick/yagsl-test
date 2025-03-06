@@ -33,6 +33,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     // Output range
     private static final double kMinOutput = -0.5;
     private static final double kMaxOutput = 0.5;
+
+    private static final double downSpeed = -0.1;
+
     
     private double targetPosition = POSITION_1;
 
@@ -40,7 +43,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         // Initialize motors with their CAN IDs
         elevatorMotor1 = new SparkMax(61, MotorType.kBrushless);
         elevatorMotor2 = new SparkMax(62, MotorType.kBrushless);
-        
+    
         // Create configuration
         SparkMaxConfig config1 = new SparkMaxConfig();
         SparkMaxConfig config2 = new SparkMaxConfig();
@@ -81,6 +84,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     public void setPosition(double targetDegrees) {
         targetPosition = targetDegrees;
         pidController1.setReference(targetDegrees, ControlType.kPosition);
+    }
+
+    public void moveDown(){
+        elevatorMotor1.set(downSpeed);
     }
     
     public void setToPosition1() {

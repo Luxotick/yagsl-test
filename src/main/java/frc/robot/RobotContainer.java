@@ -24,6 +24,7 @@ import frc.robot.subsystems.HookSubystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
+import frc.robot.subsystems.HookSubystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -46,8 +47,8 @@ public class RobotContainer
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getLeftY() * -1,
-                                                                () -> driverXbox.getLeftX() * -1)
+                                                                () -> driverXbox.getLeftY() * 1,
+                                                                () -> driverXbox.getLeftX() * 1)
                                                             .withControllerRotationAxis(driverXbox::getRightX)
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
@@ -120,8 +121,8 @@ public class RobotContainer
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     Command driveFieldOrientedAngularVelocity = drivebase.driveCommand(
-      () -> -driverXbox.getLeftY(),
-      () -> -driverXbox.getLeftX(),
+      () -> driverXbox.getLeftY(),
+      () -> driverXbox.getLeftX(),
       () -> driverXbox.getRightX(),
       () -> l2Button.getAsBoolean() // Pass the L2 button state to the drive command
   );
@@ -187,7 +188,7 @@ public class RobotContainer
       driverXbox.rightTrigger().onTrue(Commands.runOnce(hookSystem::toggleMotors, hookSystem));
       driverXbox.rightBumper().onTrue(Commands.runOnce(hookSystem::toggleMotorsReverse, hookSystem));
       driverXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
-      driverXbox.a().onTrue(Commands.runOnce(elevatorSystem::setToPosition1, elevatorSystem));
+      driverXbox.a().whileTrue(Commands.runOnce(elevatorSystem::moveDown, elevatorSystem));
       driverXbox.start().whileTrue(Commands.none());
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.b().onTrue(Commands.runOnce(hookSystem::changeSpeed, hookSystem));
