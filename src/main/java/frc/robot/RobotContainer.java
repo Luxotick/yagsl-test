@@ -19,12 +19,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.ShooterPositionCommand;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.HookSubystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
-import frc.robot.subsystems.HookSubystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -35,20 +36,21 @@ public class RobotContainer
 {
   private final HookSubystem hookSystem = new HookSubystem();
   private final ElevatorSubsystem elevatorSystem = new ElevatorSubsystem();
+  private final ShooterSubsystem shooterSystem = new ShooterSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  final         CommandXboxController driverXbox = new CommandXboxController(0);
-  //final         CommandXboxController controlXbox = new CommandXboxController(1);
+  final CommandXboxController driverXbox = new CommandXboxController(1);
+  final CommandXboxController controlXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+  private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/neo"));
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getLeftY() * 1,
-                                                                () -> driverXbox.getLeftX() * 1)
+                                                                () -> driverXbox.getLeftY() * -1,
+                                                                () -> driverXbox.getLeftX() * -1)
                                                             .withControllerRotationAxis(driverXbox::getRightX)
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
@@ -117,15 +119,22 @@ public class RobotContainer
   private void configureBindings()
   {
     Trigger l2Button = driverXbox.leftTrigger(0.5); // Adjust the threshold as needed
+    
+    // Create shooter rotation commands
+    Command rotateShooterUpCommand = new ShooterPositionCommand(shooterSystem, true);
+    Command rotateShooterDownCommand = new ShooterPositionCommand(shooterSystem, false);
+    
+    // Control Xbox controller triggers
+    Trigger controlRightTrigger = controlXbox.rightTrigger(0.5);
 
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     Command driveFieldOrientedAngularVelocity = drivebase.driveCommand(
-      () -> driverXbox.getLeftY(),
-      () -> driverXbox.getLeftX(),
+      () -> -driverXbox.getLeftY(),
+      () -> -driverXbox.getLeftX(),
       () -> driverXbox.getRightX(),
       () -> l2Button.getAsBoolean() // Pass the L2 button state to the drive command
-  );
+    );
     Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
     Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
         driveDirectAngle);
@@ -179,23 +188,37 @@ public class RobotContainer
       driverXbox.y().whileTrue(drivebase.driveToDistanceCommand(1.0, 0.2));
       driverXbox.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
       driverXbox.back().whileTrue(drivebase.centerModulesCommand());
-      driverXbox.leftBumper().onTrue(Commands.none());
-      driverXbox.rightBumper().onTrue(Commands.none());
+      
+      // Test mode shooter controls on control Xbox
+      controlXbox.rightBumper().whileTrue(rotateShooterUpCommand);
+      controlRightTrigger.whileTrue(rotateShooterDownCommand);
     } else
     {
       driverXbox.leftBumper().onTrue((Commands.runOnce(drivebase::zeroGyro)));
       driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+      
+      // Restore original hook controls for driver Xbox
       driverXbox.rightTrigger().onTrue(Commands.runOnce(hookSystem::toggleMotors, hookSystem));
       driverXbox.rightBumper().onTrue(Commands.runOnce(hookSystem::toggleMotorsReverse, hookSystem));
+      
       driverXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
       driverXbox.a().whileTrue(Commands.runOnce(elevatorSystem::moveDown, elevatorSystem));
       driverXbox.start().whileTrue(Commands.none());
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.b().onTrue(Commands.runOnce(hookSystem::changeSpeed, hookSystem));
-
-      //controlXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
-      //driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      //driverXbox.rightBumper().onTrue(Commands.none());
+      
+      // Add shooter controls to control Xbox - direct motor control for smooth rotation
+      controlXbox.rightBumper().whileTrue(rotateShooterUpCommand);
+      controlRightTrigger.whileTrue(rotateShooterDownCommand);
+      controlXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
+      
+      // Add reset position functionality
+      controlXbox.povLeft().onTrue(Commands.runOnce(shooterSystem::resetPosition, shooterSystem));
+      
+      // Add a command to display the current position of the shooter
+      controlXbox.povRight().onTrue(Commands.runOnce(() -> {
+        System.out.println("Shooter position: " + shooterSystem.getCurrentPosition());
+      }));
     }
 
   }
@@ -214,5 +237,14 @@ public class RobotContainer
   public void setMotorBrake(boolean brake)
   {
     drivebase.setMotorBrake(brake);
+  }
+  
+  /**
+   * Get the ShooterSubsystem instance
+   * 
+   * @return the ShooterSubsystem
+   */
+  public ShooterSubsystem getShooterSubsystem() {
+    return shooterSystem;
   }
 }

@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+//import frc.robot.subsystems.ShooterSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to each mode, as
@@ -17,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot
 {
+  // Remove the ShooterSubsystem instance from here to avoid duplicates
+  //private final ShooterSubsystem shooterSystem = new ShooterSubsystem();
 
   private static Robot   instance;
   private        Command m_autonomousCommand;
@@ -44,6 +48,9 @@ public class Robot extends TimedRobot
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+
+    // Use the ShooterSubsystem from RobotContainer
+    //Commands.runOnce(shooterSystem::lockShooter, shooterSystem);
 
     // Create a timer to disable motor brake a few seconds after disable.  This will let the robot stop
     // immediately when disabled, but then also let it be pushed more 
@@ -81,6 +88,9 @@ public class Robot extends TimedRobot
     m_robotContainer.setMotorBrake(true);
     disabledTimer.reset();
     disabledTimer.start();
+    
+    // Lock the shooter when disabled - this will be handled by the ShooterSubsystem's periodic method
+     //Commands.runOnce(shooterSystem::lockShooter, shooterSystem);
   }
 
   @Override
@@ -116,7 +126,7 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic()
   {
-  }
+  }   
 
   @Override
   public void teleopInit()
