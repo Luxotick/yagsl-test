@@ -105,6 +105,9 @@ public class RobotContainer
   {
     // Configure the trigger bindings
     configureBindings();
+    
+    // Remove the default command for shooter subsystem
+    
     DriverStation.silenceJoystickConnectionWarning(true);
     NamedCommands.registerCommand("test", Commands.print("I EXIST"));
   }
@@ -189,7 +192,7 @@ public class RobotContainer
       driverXbox.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
       driverXbox.back().whileTrue(drivebase.centerModulesCommand());
       
-      // Test mode shooter controls on control Xbox
+      // Restore test mode shooter controls
       controlXbox.rightBumper().whileTrue(rotateShooterUpCommand);
       controlRightTrigger.whileTrue(rotateShooterDownCommand);
     } else
@@ -207,17 +210,20 @@ public class RobotContainer
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.b().onTrue(Commands.runOnce(hookSystem::changeSpeed, hookSystem));
       
-      // Add shooter controls to control Xbox - direct motor control for smooth rotation
+      // Restore shooter controls
       controlXbox.rightBumper().whileTrue(rotateShooterUpCommand);
-      controlRightTrigger.whileTrue(rotateShooterDownCommand);
-      controlXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
+      controlXbox.rightTrigger().whileTrue(rotateShooterDownCommand);
       
-      // Add reset position functionality
-      controlXbox.povLeft().onTrue(Commands.runOnce(shooterSystem::resetPosition, shooterSystem));
+      // Add algae and coral motor controls
+      controlXbox.a().onTrue(Commands.runOnce(shooterSystem::toggleAlgaeMotors, shooterSystem));
+      controlXbox.b().onTrue(Commands.runOnce(shooterSystem::toggleCoralMotors, shooterSystem));
+      
+      controlXbox.y().onTrue(Commands.runOnce(elevatorSystem::setToPosition2, elevatorSystem));
       
       // Add a command to display the current position of the shooter
       controlXbox.povRight().onTrue(Commands.runOnce(() -> {
         System.out.println("Shooter position: " + shooterSystem.getCurrentPosition());
+        System.out.println("Shooter target position: " + shooterSystem.getTargetPosition());
       }));
     }
 
