@@ -36,7 +36,6 @@ public class HookSubystem extends SubsystemBase {
     private int stallCounter = 0;  // Counter for detecting stall condition
 
     public HookSubystem() {
-        // Initialize motors with their CAN IDs
         motor1 = new SparkMax(31, MotorType.kBrushless);
         motor2 = new SparkMax(32, MotorType.kBrushless);
         encoder = motor1.getEncoder();
@@ -51,21 +50,17 @@ public class HookSubystem extends SubsystemBase {
             .idleMode(IdleMode.kBrake)  // Ensure brake mode is enabled
             .smartCurrentLimit(60);
             
-        // Configure motor2 to follow motor1
         motor2Config
             .follow(31, false) // Follow motor1 in same direction
             .idleMode(IdleMode.kBrake)  // Ensure brake mode is enabled
             .smartCurrentLimit(60);
             
-        // Configure encoder - adjusted gear ratio
         motor1Config.encoder
             .positionConversionFactor(1.0); // Raw encoder values for debugging
             
-        // Apply configuration
         motor1.configure(motor1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         motor2.configure(motor2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         
-        // Reset encoder on startup
         resetEncoder();
     }
 
@@ -99,7 +94,6 @@ public class HookSubystem extends SubsystemBase {
     }
 
     public void stopMotors() {
-        // Just stop the motors - brake mode is already configured
         motor1.set(0);
         motor2.set(0);
         isRunning = false;

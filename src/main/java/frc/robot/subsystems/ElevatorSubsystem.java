@@ -20,7 +20,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     
     // Define elevator positions in degrees
     public static final double POSITION_1 = 0.0;    // Home position
-    public static final double POSITION_2 = 870.0;   // Mid-low position
+    public static final double POSITION_2 = 800.0;   // Mid-low position
     public static final double POSITION_3 = 90.0;   // Mid-high position
     public static final double POSITION_4 = 135.0;  // Maximum height
     
